@@ -11,7 +11,7 @@
 	<groupId>com.proshop</groupId>
 	<artifactId>product-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>Product Service</name>
 	<description>Manages products, categories, and inventory</description>
 	<url/>
