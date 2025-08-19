@@ -31,4 +31,10 @@ spring:
       httpclient:
         pool:
           max-connections: 1000
-
+jhipster:
+  cache: # Cache configuration
+    hazelcast: # Hazelcast distributed cache
+      time-to-live-seconds: 3600
+      backup-count: 1
+  registry:
+    password: admin
