@@ -61,7 +61,8 @@ public class SecurityConfig {
   public UserDetailsService userDetailsService() {
     return account -> userRepository
         .findByAccount(account)
-        .orElseThrow(() -> new UsernameNotFoundException(String.format("User: %s, not found", account)));
+        .orElseThrow(
+            () -> new UsernameNotFoundException(String.format("User: %s, not found", account)));
   }
 
   @Bean

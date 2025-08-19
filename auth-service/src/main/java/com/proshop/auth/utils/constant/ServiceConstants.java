@@ -5,7 +5,6 @@ package com.proshop.auth.utils.constant;
  * string constants used for provider names, OAuth2 attributes, message templates, and Redis key
  * prefixes.
  *
- * @author Van Kiet
  */
 public final class ServiceConstants {
 
@@ -111,7 +110,7 @@ public final class ServiceConstants {
   /**
    * Redis key prefix for token storage
    */
-  public static final String REDIS_TOKEN_PREFIX = "token-exo:";
+  public static final String REDIS_TOKEN_PREFIX = "token-prshop:";
 
   /**
    * Redis key prefix for user data storage

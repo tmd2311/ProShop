@@ -3,7 +3,6 @@ package com.proshop.auth.utils.enums;
 /**
  * Enumeration representing different states a user account can be in.
  *
- * @author Van Kiet
  */
 public enum UserStatus {
   /**

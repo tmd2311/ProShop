@@ -8,13 +8,16 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 public class UserEntity extends BaseEntity implements UserDetails {
 
   @Column(name = "code", nullable = false, unique = true, length = 100)
@@ -51,6 +54,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
   }
 
   @Override
+  public String getUsername() { return  this.username; }
+
+  @Override
   public boolean isAccountNonExpired() {
     return status.equals(UserStatus.ACTIVE.name());
   }
@@ -63,10 +69,5 @@ public class UserEntity extends BaseEntity implements UserDetails {
   @Override
   public boolean isCredentialsNonExpired() {
     return UserDetails.super.isCredentialsNonExpired();
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return !getDeleted();
   }
 }
