@@ -10,8 +10,10 @@ import com.proshop.auth.entity.SocialProviderEntity;
 import com.proshop.auth.entity.UserEntity;
 import com.proshop.auth.exceptions.ResException;
 import com.proshop.auth.mapper.LoginMapper;
+import com.proshop.auth.mapper.UserMapper;
 import com.proshop.auth.repository.DomainRepository;
 import com.proshop.auth.repository.SocialProviderRepository;
+import com.proshop.auth.repository.TokenRedisRepository;
 import com.proshop.auth.repository.UserRepository;
 import com.proshop.auth.service.JwtAuthService;
 import com.proshop.auth.service.auth.AuthService;
@@ -31,6 +33,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -50,6 +53,12 @@ public class AuthServiceImpl implements AuthService {
 
   private final LoginMapper loginMapper;
 
+  private final PasswordEncoder passwordEncoder;
+
+  private final TokenRedisRepository tokenRedisRepository;
+
+  private final UserMapper userMapper;
+
   @Override
   @Transactional
   public LoginResponse login(LoginRequest request) {
@@ -66,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
       throw new ResException(ResErrorCode.ACCOUNT_DELETED);
     } catch (BadCredentialsException ex) {
       log.error("Login failed", ex);
-      throw new ResException(ResErrorCode.INVALID_USER_PASS);
+      throw new ResException(ResErrorCode.UNAUTHORIZED);
     }
   }
 
@@ -125,7 +134,30 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public UserInfoResponse changePassword(ChangePasswordRequest req, String userCode) {
-    return null;
+    UserEntity userEntity = userRepository.findByCode(userCode).orElseThrow(() -> new ResException(
+        ResErrorCode.valueOf("")));
+    String oldPassword = req.getOldPassword() != null ? req.getOldPassword().trim() : "";
+    String newPassword = req.getNewPassword() != null ? req.getNewPassword().trim() : "";
+    if (!passwordEncoder.matches(oldPassword, userEntity.getPassword())) {
+      throw new ResException(ResErrorCode.INVALID_PASSWORD);
+    }
+    if (passwordEncoder.matches(newPassword, userEntity.getPassword())) {
+      throw new ResException(ResErrorCode.OLD_PASSWORD_NOT_VALID);
+    }
+
+    validateNewPassword(newPassword);
+
+    userEntity.setPasswordHash(passwordEncoder.encode(newPassword));
+    userEntity.setModifiedDate(LocalDateTime.now());
+    userEntity.setModifiedBy(userCode);
+    userRepository.save(userEntity);
+    boolean deleted = tokenRedisRepository.deleteAllTokens(userEntity.getCode());
+    if (!deleted) {
+      log.error("Unable to revoke Redis token for userCode = {}", userEntity.getCode());
+      throw new ResException(ResErrorCode.TOKEN_DELETE_FAILED);
+    }
+
+    return userMapper.toDTO(userEntity);
   }
 
   @Override
@@ -143,11 +175,34 @@ public class AuthServiceImpl implements AuthService {
       throw new ResException(ResErrorCode.ACCOUNT_DELETED);
     }
   }
+
   private String getSocialLoginProvider(UserEntity user) {
     return socialProviderRepository.findByUserEntity(user).stream()
         .filter(provider -> !Boolean.TRUE.equals(provider.getDeleted()))
         .findFirst()
         .map(SocialProviderEntity::getProviderName)
         .orElse(null);
+  }
+
+  private void validateNewPassword(String password) {
+    if (password == null || password.trim().isEmpty()) {
+      throw new ResException(ResErrorCode.INVALID_USER_PASS);
+    }
+    if (password.length() < 6) {
+      throw  new ResException(ResErrorCode.WEAK_PASSWORD);
+    }
+    String trimmedPassword = password.trim();
+    if (!trimmedPassword.matches(".*[A-Z].*")) {
+      throw new ResException(ResErrorCode.WEAK_PASSWORD);
+    }
+    if (!trimmedPassword.matches(".*[a-z].*")) {
+      throw new ResException(ResErrorCode.WEAK_PASSWORD);
+    }
+    if (!trimmedPassword.matches(".*\\d.*")) {
+      throw new ResException(ResErrorCode.WEAK_PASSWORD);
+    }
+    if (!trimmedPassword.matches(".*[!@#$%^&*(),.?\":{}|<>].*")) {
+      throw new ResException(ResErrorCode.WEAK_PASSWORD);
+    }
   }
 }
