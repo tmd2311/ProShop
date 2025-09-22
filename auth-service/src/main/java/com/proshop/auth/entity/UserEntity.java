@@ -41,7 +41,7 @@ public class UserEntity extends BaseEntity implements UserDetails {
   @Column(name = "last_login")
   private LocalDateTime lastLogin;
   @Column(name = "status", length = 20)
-  private String status;
+  private String status = UserStatus.ACTIVE.name();
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

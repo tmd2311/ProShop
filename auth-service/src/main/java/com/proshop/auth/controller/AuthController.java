@@ -2,8 +2,10 @@ package com.proshop.auth.controller;
 
 import com.proshop.auth.dto.request.ChangePasswordRequest;
 import com.proshop.auth.dto.request.LoginRequest;
+import com.proshop.auth.dto.request.RegisterRequest;
 import com.proshop.auth.dto.response.GeneralResponse;
 import com.proshop.auth.dto.response.LoginResponse;
+import com.proshop.auth.dto.response.ResponseFactory;
 import com.proshop.auth.dto.response.UserInfoResponse;
 import com.proshop.auth.service.auth.AuthService;
 import com.proshop.auth.utils.JwtUtil;
@@ -16,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.proshop.auth.dto.response.ResponseFactory;
 
 @RestController
 @RequestMapping("/api")
@@ -29,7 +30,8 @@ public class AuthController {
 
 
   @PostMapping("/auth/login")
-  public ResponseEntity<GeneralResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest loginRequest) {
+  public ResponseEntity<GeneralResponse<LoginResponse>> login(
+      @RequestBody @Valid LoginRequest loginRequest) {
     LoginResponse loginResponse = authService.login(loginRequest);
     return ResponseFactory.success(loginResponse);
   }
@@ -42,5 +44,18 @@ public class AuthController {
     String userCode = jwtUtil.getUserCodeFromToken(token);
     UserInfoResponse response = authService.changePassword(request, userCode);
     return ResponseFactory.success(response);
+  }
+
+  @PostMapping("/auth/register")
+  public ResponseEntity<GeneralResponse<UserInfoResponse>> register(
+      @Valid @RequestBody RegisterRequest request) {
+    UserInfoResponse response = authService.register(request);
+    return ResponseFactory.success(response);
+  }
+
+  @PostMapping("/logout")
+  public ResponseEntity<GeneralResponse<Boolean>> logout(@RequestHeader("Authorization") String authHeader) {
+    Boolean result = authService.logout(authHeader);
+    return ResponseFactory.success(result);
   }
 }

@@ -2,7 +2,7 @@ package com.proshop.auth.service.auth;
 
 import com.proshop.auth.dto.request.ChangePasswordRequest;
 import com.proshop.auth.dto.request.LoginRequest;
-import com.proshop.auth.dto.request.LogoutRequest;
+import com.proshop.auth.dto.request.RegisterRequest;
 import com.proshop.auth.dto.response.LoginResponse;
 import com.proshop.auth.dto.response.UserInfoResponse;
 import com.proshop.auth.entity.UserEntity;
@@ -16,5 +16,7 @@ public interface AuthService {
 
   UserInfoResponse changePassword(ChangePasswordRequest req, String userCode);
 
-  Boolean logout(LogoutRequest req);
+  UserInfoResponse register(RegisterRequest request);
+
+  Boolean logout(String token);
 }

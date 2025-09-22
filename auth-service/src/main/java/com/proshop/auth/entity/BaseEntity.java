@@ -27,7 +27,7 @@ public class BaseEntity {
   @Column(name = "modified_by")
   private String modifiedBy;
   @Column(name = "deleted", columnDefinition = "tinyint(1) default 0")
-  private Boolean deleted;
+  private Boolean deleted = Boolean.FALSE;
   @PrePersist
   protected void onCreate() {
     this.createdDate = LocalDateTime.now();

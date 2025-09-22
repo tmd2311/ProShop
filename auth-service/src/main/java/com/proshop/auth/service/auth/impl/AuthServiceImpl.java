@@ -2,7 +2,7 @@ package com.proshop.auth.service.auth.impl;
 
 import com.proshop.auth.dto.request.ChangePasswordRequest;
 import com.proshop.auth.dto.request.LoginRequest;
-import com.proshop.auth.dto.request.LogoutRequest;
+import com.proshop.auth.dto.request.RegisterRequest;
 import com.proshop.auth.dto.response.LoginResponse;
 import com.proshop.auth.dto.response.UserInfoResponse;
 import com.proshop.auth.entity.DomainEntity;
@@ -17,6 +17,7 @@ import com.proshop.auth.repository.TokenRedisRepository;
 import com.proshop.auth.repository.UserRepository;
 import com.proshop.auth.service.JwtAuthService;
 import com.proshop.auth.service.auth.AuthService;
+import com.proshop.auth.utils.JwtUtil;
 import com.proshop.auth.utils.enums.ResErrorCode;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -42,22 +43,16 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
   private final UserRepository userRepository;
-
   private final AuthenticationManager authenticationManager;
-
   private final SocialProviderRepository socialProviderRepository;
-
   private final JwtAuthService jwtAuthService;
-
   private final DomainRepository domainRepository;
-
   private final LoginMapper loginMapper;
-
-  private final PasswordEncoder passwordEncoder;
-
-  private final TokenRedisRepository tokenRedisRepository;
-
   private final UserMapper userMapper;
+  private final PasswordEncoder passwordEncoder;
+  private final TokenRedisRepository tokenRedisRepository;
+  private final JwtUtil jwtUtil;
+
 
   @Override
   @Transactional
@@ -75,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
       throw new ResException(ResErrorCode.ACCOUNT_DELETED);
     } catch (BadCredentialsException ex) {
       log.error("Login failed", ex);
-      throw new ResException(ResErrorCode.UNAUTHORIZED);
+      throw new ResException(ResErrorCode.INVALID_USER_PASS);
     }
   }
 
@@ -161,8 +156,47 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public Boolean logout(LogoutRequest req) {
-    return null;
+  public UserInfoResponse register(RegisterRequest request) {
+    if (userRepository.existsByAccount(request.getAccount())) {
+      throw new ResException(ResErrorCode.ACCOUNT_ALREADY_EXISTS);
+    }
+    if (userRepository.existsByEmail(request.getEmail())) {
+      throw new ResException(ResErrorCode.EMAIL_ALREADY_EXISTS);
+    }
+
+    validateNewPassword(request.getPassword());
+
+    UserEntity user = new UserEntity();
+    user.setAccount(request.getAccount().trim());
+    user.setEmail(request.getEmail().trim());
+    user.setPhone(request.getPhone() != null ? request.getPhone().trim() : null);
+    user.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+    user.setCreatedDate(LocalDateTime.now());
+    user.setCreatedBy(request.getAccount());
+
+    String userCode = generateUserCode();
+    user.setCode(userCode);
+
+    UserEntity savedUser = userRepository.save(user);
+    return userMapper.toDTO(savedUser);
+  }
+
+  @Override
+  @Transactional
+  public Boolean logout(String authHeader) {
+    String token = authHeader;
+    if (token != null && token.startsWith("Bearer ")) {
+      token = token.substring(7);
+    } else {
+      throw new ResException(ResErrorCode.TOKEN_INVALID); // Không đúng format
+    }
+    try {
+      String userCode = jwtUtil.getUserCodeFromToken(token);
+      return tokenRedisRepository.deleteToken(userCode, token);
+    } catch (Exception e) {
+      log.error("Logout failed - Invalid token", e);
+      throw new ResException(ResErrorCode.TOKEN_INVALID);
+    }
   }
 
   private void validateLoginRequest(LoginRequest request) {
@@ -175,7 +209,6 @@ public class AuthServiceImpl implements AuthService {
       throw new ResException(ResErrorCode.ACCOUNT_DELETED);
     }
   }
-
   private String getSocialLoginProvider(UserEntity user) {
     return socialProviderRepository.findByUserEntity(user).stream()
         .filter(provider -> !Boolean.TRUE.equals(provider.getDeleted()))
@@ -204,5 +237,11 @@ public class AuthServiceImpl implements AuthService {
     if (!trimmedPassword.matches(".*[!@#$%^&*(),.?\":{}|<>].*")) {
       throw new ResException(ResErrorCode.WEAK_PASSWORD);
     }
+  }
+
+  private String generateUserCode() {
+    long count = userRepository.count();
+    long nextId = count + 1;
+    return String.format("USER_%03d", nextId);
   }
 }
