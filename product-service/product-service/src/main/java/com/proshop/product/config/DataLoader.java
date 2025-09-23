@@ -5,11 +5,13 @@ import com.proshop.product.entity.ProductEntity;
 import com.proshop.product.entity.CategoryEntity;
 import com.proshop.product.entity.BrandEntity;
 import com.proshop.product.entity.SKUEntity;
+import com.proshop.product.entity.ProductImageEntity;
 import com.proshop.product.repository.CategoryImageRepository;
 import com.proshop.product.repository.ProductRepository;
 import com.proshop.product.repository.CategoryRepository;
 import com.proshop.product.repository.BrandRepository;
 import com.proshop.product.repository.SKURepository;
+import com.proshop.product.repository.ProductImageRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +28,9 @@ public class DataLoader {
         CategoryRepository categoryRepository,
         BrandRepository brandRepository,
         SKURepository skuRepository,
-        CategoryImageRepository categoryImageRepository) {
+        CategoryImageRepository categoryImageRepository,
+        ProductImageRepository productImageRepository // 👈 thêm repository cho product image
+    ) {
 
         return args -> {
             if (productRepository.count() == 0) {
@@ -122,6 +126,24 @@ public class DataLoader {
 
                     productRepository.save(product);
 
+                    // ================= PRODUCT IMAGES =================
+                    ProductImageEntity primaryImage = ProductImageEntity.builder()
+                        .product(product)
+                        .url("/images/products/product-" + i + "-1.png")
+                        .isPrimary(true)
+                        .build();
+                    productImageRepository.save(primaryImage);
+
+                    for (int imgIndex = 2; imgIndex <= 3; imgIndex++) {
+                        ProductImageEntity extraImage = ProductImageEntity.builder()
+                            .product(product)
+                            .url("/images/products/product-" + i + "-" + imgIndex + ".png")
+                            .isPrimary(false)
+                            .build();
+                        productImageRepository.save(extraImage);
+                    }
+
+                    // ================= SKU =================
                     SKUEntity sku1 = SKUEntity.builder()
                         .product(product)
                         .skuCode("SKU-" + brand.getSlug().toUpperCase() + "-" + i + "-8GB")
@@ -152,11 +174,10 @@ public class DataLoader {
                     skuRepository.save(sku2);
                 }
 
-                System.out.println("Sample categories, brands, and 10 products with SKUs inserted!");
+                System.out.println("Sample categories, brands, products, SKUs and images inserted!");
             } else {
                 System.out.println("Database already has data, skipping sample insert.");
             }
         };
     }
-
 }

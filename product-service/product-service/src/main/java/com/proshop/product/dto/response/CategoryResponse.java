@@ -25,6 +25,8 @@ public class CategoryResponse {
     private String categoryType; // ROOT, LAPTOP_TYPE, COMPONENT_TYPE, etc.
     private Long productCount; // Number of products in this category
     private Boolean isActive; // Category status
+    private String imageUrl;
+
     // Constructor for JPQL SELECT NEW - khớp với kiểu dữ liệu JPQL trả về
     public CategoryResponse(UUID id,
                             String name,
@@ -37,7 +39,8 @@ public class CategoryResponse {
                             int hierarchyLevel,       // JPQL CASE WHEN trả về int
                             String categoryType,
                             long productCount,        // 0L là long
-                            boolean isActive) {       // true là boolean
+                            boolean isActive,         // true là boolean
+                            String imageUrl) {
         this.id = id;
         this.name = name;
         this.slug = slug;
@@ -50,6 +53,7 @@ public class CategoryResponse {
         this.categoryType = categoryType;
         this.productCount = productCount;
         this.isActive = isActive;
+        this.imageUrl = imageUrl;
     }
 
     // Simplified constructor for basic category info (commonly used)

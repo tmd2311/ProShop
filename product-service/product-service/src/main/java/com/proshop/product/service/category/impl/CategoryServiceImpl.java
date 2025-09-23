@@ -7,6 +7,7 @@ import com.proshop.product.dto.response.CategoryResponse;
 import com.proshop.product.dto.response.GeneralResponse;
 import com.proshop.product.dto.response.ResponseStatus;
 import com.proshop.product.entity.CategoryEntity;
+import com.proshop.product.entity.CategoryImageEntity;
 import com.proshop.product.exceptions.ResException;
 import com.proshop.product.repository.CategoryRepository;
 import com.proshop.product.service.category.CategoryService;
@@ -558,6 +559,16 @@ public class CategoryServiceImpl implements CategoryService {
         // Add category type based on parent structure (for PC store context)
         String categoryType = determineCategoryType(category);
         builder.categoryType(categoryType);
+
+        //Map img url
+        if (category.getImages() != null && !category.getImages().isEmpty()) {
+            String imageUrl = category.getImages().stream()
+                .filter(CategoryImageEntity::getIsPrimary)
+                .map(CategoryImageEntity::getUrl)
+                .findFirst()
+                .orElse(category.getImages().get(0).getUrl());
+            builder.imageUrl(imageUrl);
+        }
 
         return builder.build();
     }
