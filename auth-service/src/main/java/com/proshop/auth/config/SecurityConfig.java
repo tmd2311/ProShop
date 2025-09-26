@@ -55,29 +55,29 @@ public class SecurityConfig {
 
   private final UserRepository userRepository;
 
-  private final JwtAuthenticationFilter tokenAuthenticationFilter;
 
   @Bean
   public UserDetailsService userDetailsService() {
     return account -> userRepository
-        .findByAccount(account)
+        .findByAccountWithRoles(account)
         .orElseThrow(
             () -> new UsernameNotFoundException(String.format("User: %s, not found", account)));
   }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http,
-      CorsConfigurationSource corsConfigurationSource) throws Exception {
-    logger.debug("Configuring security filter chain");
-
+      JwtAuthenticationFilter jwtAuthenticationFilter)
+      throws Exception {
     http
         .csrf(AbstractHttpConfigurer::disable)
         .cors(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(PUBLIC_URLS).permitAll()
-            .anyRequest().authenticated())
-        .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-    logger.debug("Security filter chain configuration completed");
+            .requestMatchers("/api/v1/user/**").hasRole("ADMIN")
+            .anyRequest().authenticated()
+        )
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
     return http.build();
   }
 

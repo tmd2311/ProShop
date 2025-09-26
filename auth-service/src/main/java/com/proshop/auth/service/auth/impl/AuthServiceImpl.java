@@ -6,6 +6,7 @@ import com.proshop.auth.dto.request.RegisterRequest;
 import com.proshop.auth.dto.response.LoginResponse;
 import com.proshop.auth.dto.response.UserInfoResponse;
 import com.proshop.auth.entity.DomainEntity;
+import com.proshop.auth.entity.RoleEntity;
 import com.proshop.auth.entity.SocialProviderEntity;
 import com.proshop.auth.entity.UserEntity;
 import com.proshop.auth.exceptions.ResException;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -104,17 +106,12 @@ public class AuthServiceImpl implements AuthService {
       newAuth.setDetails(Map.of("provider", loginProvider));
       SecurityContextHolder.getContext().setAuthentication(newAuth);
     }
-    List<DomainEntity> domainEntities = domainRepository.findDomainForUser(entity.getId());
-    List<String> domainNames = new ArrayList<>();
-    if (domainEntities != null && !domainEntities.isEmpty()) {
-      domainNames = domainEntities.stream().map(DomainEntity::getName).toList();
-    }
-    List<String> roleNames = userRepository.getRoleNamesByUserId(entity.getId());
-    info.put("domain", domainNames);
+    List<RoleEntity> roles = userRepository.getRoleByUserId(entity.getId());
+    info.put("roles", roles);
     String token = jwtAuthService.generateAndStoreToken(entity, info);
     LoginResponse loginResponse = loginMapper.toDTO(entity);
     loginResponse.setToken(token);
-    loginResponse.setRoleNames(roleNames);
+    loginResponse.setRoleNames(roles.stream().map(RoleEntity::getName).collect(Collectors.toList()));
     if (entity.getLastLogin() == null) {
       loginResponse.setFirstLogin(true);
     }
