@@ -12,6 +12,7 @@ import com.proshop.product.exceptions.ResException;
 import com.proshop.product.repository.BrandRepository;
 import com.proshop.product.service.brand.BrandService;
 import com.proshop.product.utils.enums.ResErrorCode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -158,16 +159,18 @@ public class BrandServiceImpl implements BrandService {
         );
     }
     @Override
-    public GeneralResponse<Page<BrandResponse>> getAllBrands(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-        Page<BrandEntity> brandPage = brandRepository.findAll(pageable);
+    public GeneralResponse<List<BrandResponse>> getAllBrands() {
+        List<BrandEntity> brandEntities = brandRepository.findAll();
 
-        Page<BrandResponse> responsePage = brandPage.map(this::convertToDTO);
+        List<BrandResponse> responseList = brandEntities
+            .stream()
+            .map(this::convertToDTO)
+            .toList();
 
         return new GeneralResponse<>(
-                ResponseStatus.SUCCESS_STATUS,
-                responsePage,
-                null
+            ResponseStatus.SUCCESS_STATUS,
+            responseList,
+            null
         );
     }
 

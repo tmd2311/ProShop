@@ -40,11 +40,11 @@ public class ProductEntity {
   @Column(columnDefinition = "jsonb")
   private Map<String, Object> specs;
 
-  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<SKUEntity> skus;
-
-  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private List<ProductImageEntity> images;
+
+  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  private List<SKUEntity> skus;
 
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;

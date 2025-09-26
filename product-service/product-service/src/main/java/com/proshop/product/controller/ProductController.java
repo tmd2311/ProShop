@@ -28,9 +28,11 @@ public class ProductController {
     @GetMapping("/product")
     public ResponseEntity<GeneralResponse<PageResponse<ProductResponse>>> getAllProducts(
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "12") int size) {
+        @RequestParam(defaultValue = "12") int size,
+        @RequestParam(required = false) String sortField,
+        @RequestParam(required = false) String sortDirection) {
 
-        GeneralResponse<PageResponse<ProductResponse>> response = productService.getProducts(page, size);
+        GeneralResponse<PageResponse<ProductResponse>> response = productService.getProducts(page, size, sortField, sortDirection);
         return ResponseEntity.ok(response);
     }
 

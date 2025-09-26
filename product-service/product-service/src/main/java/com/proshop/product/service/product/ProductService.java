@@ -12,7 +12,7 @@ import java.util.UUID;
 
 
 public interface ProductService {
-  GeneralResponse<PageResponse<ProductResponse>> getProducts(int page, int size);
+  GeneralResponse<PageResponse<ProductResponse>> getProducts(int page, int size, String sortField, String sortDirection);
   GeneralResponse<ProductResponse> getProductById(String idStr);
   GeneralResponse<ProductDeleteResponse> deleteProduct(String idStr);
   GeneralResponse<ProductResponse> updateProduct(UUID id, ProductUpdateRequest request);

@@ -5,6 +5,7 @@ import com.proshop.product.dto.request.BrandUpdateRequest;
 import com.proshop.product.dto.response.BrandDeleteResponse;
 import com.proshop.product.dto.response.BrandResponse;
 import com.proshop.product.dto.response.GeneralResponse;
+import java.util.List;
 import org.springframework.data.domain.Page;
 
 import java.util.UUID;
@@ -15,5 +16,5 @@ public interface BrandService {
     GeneralResponse<Page<BrandResponse>> searchBrands(String name, int page, int size);
     GeneralResponse<BrandResponse> createBrand(BrandCreateRequest request);
     GeneralResponse<BrandResponse> getBrandById(UUID id);
-    GeneralResponse<Page<BrandResponse>> getAllBrands(int page, int size);
+    GeneralResponse<List<BrandResponse>> getAllBrands();
 }

@@ -6,6 +6,7 @@ import com.proshop.product.dto.response.BrandDeleteResponse;
 import com.proshop.product.dto.response.BrandResponse;
 import com.proshop.product.dto.response.GeneralResponse;
 import com.proshop.product.service.brand.BrandService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -62,11 +63,9 @@ public class BrandController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/brands")
-    public ResponseEntity<GeneralResponse<Page<BrandResponse>>> getAllBrands(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<GeneralResponse<List<BrandResponse>>> getAllBrands(){
 
-        GeneralResponse<Page<BrandResponse>> response = brandService.getAllBrands(page, size);
+        GeneralResponse<List<BrandResponse>> response = brandService.getAllBrands();
         return ResponseEntity.ok(response);
     }
 

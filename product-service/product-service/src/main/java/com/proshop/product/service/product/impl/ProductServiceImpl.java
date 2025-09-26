@@ -20,8 +20,6 @@ import com.proshop.product.service.product.ProductService;
 
 
 import com.proshop.product.specification.ProductSpecification;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -32,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,28 +46,31 @@ public class ProductServiceImpl implements ProductService {
   private final CategoryRepository categoryRepository;
 
   @Override
-  public GeneralResponse<PageResponse<ProductResponse>> getProducts(int page, int size) {
-    List<ProductEntity> productEntityList = productRepository.findAll();
-    List<ProductResponse> productResponses = new ArrayList<>();
-    for (ProductEntity entity : productEntityList) {
-      ProductResponse response = convertToDTO(entity);
-      productResponses.add(response);
+  public GeneralResponse<PageResponse<ProductResponse>> getProducts(
+      int page,
+      int size,
+      String sortField,
+      String sortDirection
+  ) {
+    Sort.Direction direction = Direction.ASC;
+    if (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) {
+      direction = Direction.DESC;
     }
-    long totalElements = productResponses.size();
 
-    // Tính start & end index để phân trang
-    int start = page * size;
-    int end = Math.min(start + size, productResponses.size());
+    if (sortField == null || sortField.isBlank()) {
+      sortField = "name";
+    }
 
-    // Nếu page vượt quá số phần tử thì trả về empty list
-    List<ProductResponse> pageContent = start < totalElements
-        ? productResponses.subList(start, end)
-        : Collections.emptyList();
+    Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+    Page<ProductEntity> productPage = productRepository.findAll(pageable);
 
-    // Tạo PageResponse
+    List<ProductResponse> productResponses = productPage
+        .map(this::convertToDTO)
+        .getContent();
+
     PageResponse<ProductResponse> pageResponse = PageResponseUtil.buildPageResponse(
-        pageContent,
-        totalElements,
+        productResponses,
+        productPage.getTotalElements(),
         page,
         size
     );
@@ -78,6 +81,7 @@ public class ProductServiceImpl implements ProductService {
         null
     );
   }
+
 
   @Override
   public GeneralResponse<ProductResponse> getProductById(String idStr) {
@@ -108,6 +112,7 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
+  @Transactional
   public GeneralResponse<ProductDeleteResponse> deleteProduct(String idStr) {
       UUID id = covertIdToUUID(idStr);
       ProductEntity product = productRepository.findById(id).orElse(null);
@@ -116,7 +121,7 @@ public class ProductServiceImpl implements ProductService {
       }
 
       ProductDeleteResponse data = new ProductDeleteResponse(product.getId(), product.getName());
-      productRepository.deleteById(id);
+      productRepository.delete(product);
 
       return new GeneralResponse<>(
               ResponseStatus.SUCCESS_STATUS,
