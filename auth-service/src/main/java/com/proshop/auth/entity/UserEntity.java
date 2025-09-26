@@ -4,8 +4,11 @@ package com.proshop.auth.entity;
 import com.proshop.auth.utils.enums.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.Getter;
@@ -42,6 +45,10 @@ public class UserEntity extends BaseEntity implements UserDetails {
   private LocalDateTime lastLogin;
   @Column(name = "status", length = 20)
   private String status = UserStatus.ACTIVE.name();
+
+  @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY)
+  private List<UserRoleEntity> userRoles = new ArrayList<>();
+
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
