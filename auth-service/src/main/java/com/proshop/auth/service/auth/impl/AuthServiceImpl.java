@@ -3,6 +3,7 @@ package com.proshop.auth.service.auth.impl;
 import com.proshop.auth.dto.request.ChangePasswordRequest;
 import com.proshop.auth.dto.request.LoginRequest;
 import com.proshop.auth.dto.request.RegisterRequest;
+import com.proshop.auth.dto.response.AuthInfoResponse;
 import com.proshop.auth.dto.response.LoginResponse;
 import com.proshop.auth.dto.response.UserInfoResponse;
 import com.proshop.auth.entity.DomainEntity;
@@ -58,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  public LoginResponse login(LoginRequest request) {
+  public LoginResponse  login(LoginRequest request) {
     validateLoginRequest(request);
     try {
       Authentication authenticate = authenticationManager.authenticate(
@@ -125,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public UserInfoResponse changePassword(ChangePasswordRequest req, String userCode) {
+  public AuthInfoResponse changePassword(ChangePasswordRequest req, String userCode) {
     UserEntity userEntity = userRepository.findByCode(userCode).orElseThrow(() -> new ResException(
         ResErrorCode.valueOf("")));
     String oldPassword = req.getOldPassword() != null ? req.getOldPassword().trim() : "";
@@ -153,7 +154,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public UserInfoResponse register(RegisterRequest request) {
+  public AuthInfoResponse register(RegisterRequest request) {
     if (userRepository.existsByAccount(request.getAccount())) {
       throw new ResException(ResErrorCode.ACCOUNT_ALREADY_EXISTS);
     }

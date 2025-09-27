@@ -3,6 +3,7 @@ package com.proshop.auth.controller;
 import com.proshop.auth.dto.request.ChangePasswordRequest;
 import com.proshop.auth.dto.request.LoginRequest;
 import com.proshop.auth.dto.request.RegisterRequest;
+import com.proshop.auth.dto.response.AuthInfoResponse;
 import com.proshop.auth.dto.response.GeneralResponse;
 import com.proshop.auth.dto.response.LoginResponse;
 import com.proshop.auth.dto.response.ResponseFactory;
@@ -37,19 +38,19 @@ public class AuthController {
   }
 
   @PostMapping("/change-password")
-  public ResponseEntity<GeneralResponse<UserInfoResponse>> changePassword(
+  public ResponseEntity<GeneralResponse<AuthInfoResponse>> changePassword(
       @RequestBody @Valid ChangePasswordRequest request,
       @RequestHeader("Authorization") String authHeader) {
     String token = authHeader.substring(7); // Remove "Bearer "
     String userCode = jwtUtil.getUserCodeFromToken(token);
-    UserInfoResponse response = authService.changePassword(request, userCode);
+    AuthInfoResponse response = authService.changePassword(request, userCode);
     return ResponseFactory.success(response);
   }
 
   @PostMapping("/auth/register")
-  public ResponseEntity<GeneralResponse<UserInfoResponse>> register(
+  public ResponseEntity<GeneralResponse<AuthInfoResponse>> register(
       @Valid @RequestBody RegisterRequest request) {
-    UserInfoResponse response = authService.register(request);
+    AuthInfoResponse response = authService.register(request);
     return ResponseFactory.success(response);
   }
 

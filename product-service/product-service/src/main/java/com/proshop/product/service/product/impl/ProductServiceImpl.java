@@ -1,6 +1,7 @@
 package com.proshop.product.service.product.impl;
 
 import com.proshop.product.dto.request.ProductCreateRequest;
+import com.proshop.product.dto.request.ProductSearchRequest;
 import com.proshop.product.dto.request.ProductUpdateRequest;
 import com.proshop.product.dto.response.GeneralResponse;
 import com.proshop.product.dto.response.PageResponse;
@@ -16,6 +17,8 @@ import com.proshop.product.exceptions.ResException;
 import com.proshop.product.repository.BrandRepository;
 import com.proshop.product.repository.CategoryRepository;
 import com.proshop.product.repository.ProductRepository;
+import com.proshop.product.repository.ProductSearchRepository;
+import com.proshop.product.repository.ProductSearchRepositoryImpl;
 import com.proshop.product.service.product.ProductService;
 
 
@@ -44,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
   private final ProductRepository productRepository;
   private final BrandRepository brandRepository;
   private final CategoryRepository categoryRepository;
+  private final ProductSearchRepository productSearchRepository;
 
   @Override
   public GeneralResponse<PageResponse<ProductResponse>> getProducts(
@@ -290,7 +294,41 @@ public class ProductServiceImpl implements ProductService {
         );
     }
 
-    private void validateProductCreationRequest(ProductCreateRequest request) {
+  @Override
+  public GeneralResponse<PageResponse<ProductResponse>> searchProductsV2(
+      ProductSearchRequest request,
+      int page,
+      int size
+  ) {
+    Pageable pageable = PageRequest.of(page, size);
+    List<ProductEntity> allProducts = productSearchRepository.searchProducts(request);
+
+    long totalElements = allProducts.size();
+
+    int fromIndex = Math.min((int) pageable.getOffset(), allProducts.size());
+    int toIndex = Math.min(fromIndex + pageable.getPageSize(), allProducts.size());
+    List<ProductEntity> pagedProducts = allProducts.subList(fromIndex, toIndex);
+
+    List<ProductResponse> productResponses = pagedProducts.stream()
+        .map(this::convertToDTO)
+        .toList();
+
+    PageResponse<ProductResponse> pageResponse = PageResponseUtil.buildPageResponse(
+        productResponses,
+        totalElements,
+        page,
+        size
+    );
+
+    return new GeneralResponse<>(
+        ResponseStatus.SUCCESS_STATUS,
+        pageResponse,
+        null
+    );
+  }
+
+
+  private void validateProductCreationRequest(ProductCreateRequest request) {
         if (request.getName() == null || request.getName().isBlank()) {
             throw new ResException(ResErrorCode.PRODUCT_NAME_REQUIRED);
         }

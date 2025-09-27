@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -85,5 +86,10 @@ public class UserEntity extends BaseEntity implements UserDetails {
   @Override
   public boolean isCredentialsNonExpired() {
     return UserDetails.super.isCredentialsNonExpired();
+  }
+  public List<RoleEntity> getRoles() {
+    return userRoles.stream()
+        .map(UserRoleEntity::getRoleEntity)
+        .collect(Collectors.toList());
   }
 }

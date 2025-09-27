@@ -5,6 +5,7 @@ import com.proshop.auth.dto.response.PageResponse;
 import com.proshop.auth.dto.response.PageResponseUtil;
 import com.proshop.auth.dto.response.ResponseStatus;
 import com.proshop.auth.dto.response.UserInfoResponse;
+import com.proshop.auth.entity.RoleEntity;
 import com.proshop.auth.entity.UserEntity;
 import com.proshop.auth.exceptions.ResException;
 import com.proshop.auth.mapper.UserMapper;
@@ -14,6 +15,7 @@ import com.proshop.auth.utils.enums.ResErrorCode;
 import com.proshop.auth.utils.enums.UserStatus;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,11 +36,12 @@ public class UserServiceImpl implements UserService {
   public GeneralResponse<PageResponse<UserInfoResponse>> getAllUsers(Pageable pageable) {
     Page<UserEntity> usersPage = userRepository.findAllByDeletedFalse(pageable);
     List<UserInfoResponse> listUserInfoResponses = new ArrayList<>();
-    UserInfoResponse userInfoResponse;
+
     for (UserEntity user : usersPage) {
-      userInfoResponse = userMapper.toDTO(user);
+      UserInfoResponse userInfoResponse = toDTO(user);
       listUserInfoResponses.add(userInfoResponse);
     }
+
     PageResponse<UserInfoResponse> pageResponse = PageResponseUtil.buildPageResponse(
         listUserInfoResponses,
         usersPage.getTotalElements(),
@@ -94,5 +97,31 @@ public class UserServiceImpl implements UserService {
     log.info("Soft deleted user successfully with ID: {}", id);
   }
 
+  // Chuyển UserEntity -> UserInfoResponse
+  private UserInfoResponse toDTO(UserEntity entity) {
+    if (entity == null) return null;
+
+    UserInfoResponse dto = new UserInfoResponse();
+    dto.setCode(entity.getCode());
+    dto.setAccount(entity.getAccount());
+    dto.setUsername(entity.getUsername());
+    dto.setFullName(entity.getFullName());
+    dto.setAvatarUrl(entity.getAvatarUrl());
+    dto.setCurrentAddress(entity.getCurrentAddress());
+    dto.setLastLogin(entity.getLastLogin());
+    dto.setEmail(entity.getEmail());
+    dto.setStatus(entity.getStatus());
+
+    if (entity.getRoles() != null) {
+      List<String> roleNames = entity.getRoles().stream()
+          .map(RoleEntity::getName)
+          .collect(Collectors.toList());
+      dto.setRoles(roleNames);
+    } else {
+      dto.setRoles(new ArrayList<>());
+    }
+
+    return dto;
+  }
 
 }
