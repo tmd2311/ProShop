@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -41,12 +42,18 @@ public class JwtUtil {
     printWriter.close();
   }
 
-  public String generateToken(String username, Map<String, Object> claims) {
+  public String generateToken(UserEntity user, Map<String, Object> claims) {
     Date now = new Date();
     Date expiry = new Date(now.getTime() + jwtConfig.getExpirationTime());
 
+    List<String> roleCodes = user.getUserRoles().stream()
+        .map(userRole -> userRole.getRoleEntity().getCode())
+        .toList();
+
+    claims.put("roles", roleCodes);
+
     return Jwts.builder()
-        .setSubject(username)
+        .setSubject(user.getAccount())
         .setIssuedAt(now)
         .setExpiration(expiry)
         .addClaims(claims)

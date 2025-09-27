@@ -1,14 +1,14 @@
 package com.proshop.auth.mapper;
 
-import com.proshop.auth.dto.response.UserInfoResponse;
+import com.proshop.auth.dto.response.AuthInfoResponse;
 import com.proshop.auth.entity.UserEntity;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-  UserInfoResponse toDTO(UserEntity userEntity);
+  AuthInfoResponse toDTO(UserEntity userEntity);
 
-  UserEntity toEntity(UserInfoResponse userInfoResponse);
+  UserEntity toEntity(AuthInfoResponse userInfoResponse);
 
 }

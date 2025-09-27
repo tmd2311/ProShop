@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class UserInfoResponse {
+public class AuthInfoResponse {
 
   private String code;
   private String account;
@@ -17,5 +17,4 @@ public class UserInfoResponse {
   private String currentAddress;
   private LocalDateTime lastLogin;
   private String status;
-  private List<String> roles;
 }

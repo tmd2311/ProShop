@@ -1,6 +1,7 @@
 package com.proshop.product.controller;
 
 import com.proshop.product.dto.request.ProductCreateRequest;
+import com.proshop.product.dto.request.ProductSearchRequest;
 import com.proshop.product.dto.request.ProductUpdateRequest;
 import com.proshop.product.dto.response.PageResponse;
 import com.proshop.product.dto.response.ProductDeleteResponse;
@@ -9,6 +10,8 @@ import com.proshop.product.dto.response.ProductResponse;
 import com.proshop.product.service.product.ProductService;
 
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
@@ -59,20 +62,30 @@ public class ProductController {
     }
 
     @GetMapping("/product/search")
-    public ResponseEntity<GeneralResponse<PageResponse<ProductResponse>>> searchProducts(
-        @RequestParam(required = false) String name,
-        @RequestParam(required = false) String brand,
-        @RequestParam(required = false) String category,
-        @RequestParam(required = false) Double minPrice,
-        @RequestParam(required = false) Double maxPrice,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "12") int size) {
-
-        GeneralResponse<PageResponse<ProductResponse>> response = productService.searchProducts(
-            name, brand, category,
-            minPrice, maxPrice,
-            page, size);
-        return ResponseEntity.ok(response);
+    public GeneralResponse<PageResponse<ProductResponse>> searchProducts(
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "categoryIds", required = false) List<String> categoryIds,
+        @RequestParam(value = "brandIds", required = false) List<String> brandIds,
+        @RequestParam(value = "minPrice", required = false) Long minPrice,
+        @RequestParam(value = "maxPrice", required = false) Long maxPrice,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        ProductSearchRequest request = new ProductSearchRequest();
+        request.setKeyword(keyword);
+        if (categoryIds != null) {
+            request.setCategoryIds(categoryIds.stream().map(UUID::fromString).toList());
+        }
+        if (brandIds != null) {
+            request.setBrandIds(brandIds.stream().map(UUID::fromString).toList());
+        }
+        if (minPrice != null) {
+            request.setMinPrice(BigDecimal.valueOf(minPrice));
+        }
+        if (maxPrice != null) {
+            request.setMaxPrice(BigDecimal.valueOf(maxPrice));
+        }
+        return productService.searchProductsV2(request, page, size);
     }
 
     @PostMapping("/product/create")
