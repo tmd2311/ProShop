@@ -13,8 +13,7 @@ public class CorsConfig {
   public CorsWebFilter corsWebFilter() {
     CorsConfiguration config = new CorsConfiguration();
 
-    config.addAllowedOriginPattern("*");
-    // Hoặc chỉ định cụ thể: config.addAllowedOrigin("http://localhost:3000");
+    config.addAllowedOrigin("http://localhost:3000");
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
     config.setAllowCredentials(true);

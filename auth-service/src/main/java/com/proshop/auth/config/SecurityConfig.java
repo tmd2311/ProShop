@@ -51,7 +51,7 @@ public class SecurityConfig {
       "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
 
   private static final List<String> ALLOWED_HEADERS = List.of(
-      "authorization", "content-type");
+      "Authorization", "Content-Type", "Accept", "X-Requested-With", "remember-me");
 
   private final UserRepository userRepository;
 
@@ -81,21 +81,6 @@ public class SecurityConfig {
     return http.build();
   }
 
-  @Bean
-  public CorsConfigurationSource corsConfigurationSource() {
-    logger.debug("Configuring cors configuration source");
-
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of(ALL_ORIGINS));
-    configuration.setAllowedMethods(ALLOWED_METHODS);
-    configuration.setAllowedHeaders(ALLOWED_HEADERS);
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration(ALL_ORIGINS, configuration);
-
-    logger.debug("Configuring cors configuration source completed");
-    return source;
-  }
 
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
