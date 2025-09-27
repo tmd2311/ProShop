@@ -11,7 +11,7 @@
 	<groupId>com.proshop</groupId>
 	<artifactId>order-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>Order Service</name>
 	<description>Handles customer orders, order tracking, and payment status</description>
 	<url/>
